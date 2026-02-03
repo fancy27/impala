@@ -2805,3 +2805,14 @@ LIKE PARQUET '/test-warehouse/hudi_parquet/year=2015/month=03/day=16/5f541af5-ca
 STORED AS PARQUET
 LOCATION '/test-warehouse/hudi_parquet';
 ====
+---- DATASET
+functional
+---- BASE_TABLE_NAME
+empty_parquet_page_source_impala10186
+---- COLUMNS
+id bigint
+---- ROW_FORMAT
+delimited
+---- LOAD
+LOAD DATA LOCAL INPATH '{impala_home}/testdata/empty_parquet_page_source_impala10186/data.csv' OVERWRITE INTO TABLE {db_name}{db_suffix}.{table_name};
+====
