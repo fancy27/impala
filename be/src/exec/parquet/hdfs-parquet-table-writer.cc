@@ -736,7 +736,8 @@ inline Status HdfsParquetTableWriter::BaseColumnWriter::GrowPageSize(
         PrettyPrinter::Print(bytes_needed, TUnit::BYTES),
         PrettyPrinter::Print(MAX_DATA_PAGE_SIZE , TUnit::BYTES)));
   }
-  values_buffer_len_ = bytes_needed;
+  page_size_ = bytes_needed;
+  values_buffer_len_ = page_size_;
   values_buffer_ = parent_->reusable_col_mem_pool_->Allocate(values_buffer_len_);
   return Status::OK();
 }
