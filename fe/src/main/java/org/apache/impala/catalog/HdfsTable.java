@@ -1519,6 +1519,15 @@ public class HdfsTable extends Table implements FeFsTable {
 
         if (req.table_info_selector.want_partition_metadata) {
           partInfo.hms_partition = part.toHmsPartition();
+          // Slim down per-partition sd.cols before sending over RPC.
+          // Impala never uses partition-level column schema; columns live on
+          // the TABLE-level sd. Unsetting (not setCols(emptyList())) so Thrift
+          // optionally omits the field.
+          if (partInfo.hms_partition != null
+              && partInfo.hms_partition.isSetSd()
+              && partInfo.hms_partition.getSd().isSetCols()) {
+            partInfo.hms_partition.getSd().unsetCols();
+          }
           partInfo.setHas_incremental_stats(part.hasIncrementalStats());
         }
 
