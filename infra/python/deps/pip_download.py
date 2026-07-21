@@ -31,12 +31,14 @@ import sys
 from random import randint
 from time import sleep
 # The path to import is different for libraries in Python 2 & 3 - this try/catch ensures
-# that this code runs in both
+# that this code runs in both.
+# Prefer urllib2 on Python 2: urllib's FancyURLopener/urlopen do not properly tunnel
+# HTTPS through an HTTP proxy (CONNECT), so https_proxy fails with Squid protocol errors.
 try:
   # This should be removed when support for Python2 is dropped
-  from urllib import urlopen, FancyURLopener
+  import urllib2 as urllib_request
 except ImportError:
-  from urllib.request import urlopen, FancyURLopener
+  import urllib.request as urllib_request
 
 NUM_DOWNLOAD_ATTEMPTS = 8
 
@@ -46,6 +48,16 @@ PYPI_MIRROR = os.environ.get('PYPI_MIRROR', 'https://pypi.python.org')
 REQUIREMENTS_FILES = ['requirements.txt', 'stage2-requirements.txt',
                       'compiled-requirements.txt', 'kudu-requirements.txt',
                       'adls-requirements.txt']
+
+
+def urlopen(url):
+  return urllib_request.urlopen(url)
+
+
+def retrieve_url(url, filename):
+  response = urllib_request.urlopen(url)
+  with open(filename, 'wb') as f:
+    f.write(response.read())
 
 
 def check_digest(filename, algorithm, expected_digest):
@@ -122,10 +134,9 @@ def download_package(pkg_name, pkg_version):
       expected_digest):
     print('File with matching digest already exists, skipping {0}'.format(file_name))
     return True
-  downloader = FancyURLopener()
   pkg_url = '{0}/packages/{1}'.format(PYPI_MIRROR, path)
   print('Downloading {0} from {1}'.format(file_name, pkg_url))
-  downloader.retrieve(pkg_url, file_name)
+  retrieve_url(pkg_url, file_name)
   if check_digest(file_name, hash_algorithm, expected_digest):
     return True
   else:
